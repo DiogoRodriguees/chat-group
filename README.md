@@ -1,9 +1,9 @@
 # chat-group
 
-## Server
-[use bundle](https://bundler.io/)
-
 ### Execute server
+
+Use [bundler](https://bundler.io/) to install depenncies.
+
 ```baash
   # entry in server folder
   $ cd server
