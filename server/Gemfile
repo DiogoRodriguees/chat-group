@@ -1,3 +1,8 @@
 source 'https://rubygems.org'
 
 gem 'em-websocket'
+gem 'json'
+gem 'sinatra'
+gem 'fileutils'
+
+gem "rackup", "~> 2.1"
