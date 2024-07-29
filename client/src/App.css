@@ -32,7 +32,93 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
+}
+
+.use-background {
+  background: url(../images/love-mail-pattern/background.jpg);
+  object-fit: cover;
+}
+
+.use-align-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.use-full-screen {
+  width: 100vw;
+  height: 100vh;
+}
+
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+
+  width: 45vw;
+  height: 100vh;
+  padding: 0% 2%;
+  box-shadow: 4px 4px 15px #d4d4d4;
+}
+
+
+.chat-messages {
+  height: 90%;
+  overflow-y: scroll;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 10px;
+}
+
+.chat-input-container input,
+button {
+  border-radius: 0.3rem;
+  border: 1px solid #d2d2d2;
+}
+
+.chat-input-container input {
+  width: 100%;
+  padding-left: 1rem;
+}
+
+.chat-input-container input:focus {
+  border: 1px solid #444;
+  outline: none;
+}
+
+.chat-input-container button {
+  cursor: pointer;
+  width: 60px;
+  height: 60px;
+  transition: .5s;
+  color: #444;
+}
+
+.chat-input-container button:hover {
+  background-color: #444;
+  color: white;
+  transition: .5s;
+}
+
+.chat-input-container {
+  display: flex;
+  gap: 1rem;
+
+  height: 60px;
+  padding: 10px 0px;
 }
