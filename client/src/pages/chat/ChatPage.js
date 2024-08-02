@@ -161,6 +161,13 @@ export default function ChatPage() {
 
     const handleSendImage = async (event) => {
         const file = event.target.files[0];
+
+        const validTypes = [".jpg", ".jpeg", ".bmp", ".gif", ".png"];
+
+        const isValid = validTypes.some(ext => file.name.includes(ext));
+
+        if (!isValid) return;
+
         try {
             toBase64(file).then(img64 => {
                 sendMessage({
@@ -201,7 +208,7 @@ export default function ChatPage() {
                 </div>
                 <div className='flex gap-3 mt-4'>
                     <div
-                        className='bg-[#0001] rounded-full w-full border border-transparent hover:border-[#1890ff] focus-within:border-[#1890ff] transition-[border-color_.3s_ease]'
+                        className='bg-[#0001] rounded-full w-full border border-transparent hover:border-[#1890ff] focus-within:border-[#1890ff] transition-[border-color_.3s_ease] flex'
                     >
                         <input
                             className='py-2 px-4 bg-transparent outline-none w-full'
@@ -210,6 +217,14 @@ export default function ChatPage() {
                             onChange={(e) => handleTyping(e.target.value)}
                             onKeyDown={e => e.key === 'Enter' && handleSendMessage()}
                         />
+                        <label
+                            for="upload"
+                            className="cursor-pointer py-2 px-4 h-full hover:scale-110 hover:drop-shadow-[0_0_6px_#1890ff99] transition-[transform_.3s_ease,_filter_.3s_ease]"
+                        >
+                            <div className='-translate-y-1 text-[28px] flex items-center h-6'>
+                                📷
+                            </div>
+                        </label>
                     </div>
                     <button
                         className='px-4 py-1 rounded-full border-none bg-[#1890ff] text-white font-semibold hover:brightness-110'
@@ -218,7 +233,12 @@ export default function ChatPage() {
                     >
                         Enviar
                     </button>
-                    <input type="file" onChange={handleSendImage} />
+                    <input
+                        id="upload"
+                        className='hidden'
+                        type="file"
+                        onChange={handleSendImage}
+                    />
                 </div>
             </div>
 
