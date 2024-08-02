@@ -6,3 +6,7 @@ gem 'sinatra'
 gem 'fileutils'
 
 gem "rackup", "~> 2.1"
+
+group :development, :test do
+    gem "rerun"
+end
