@@ -3,7 +3,8 @@ export default function ChatMessage({
     isTyping = false,
     isAuthor = false,
     authorName = '',
-    color = '#1890ff'
+    color = '#1890ff',
+    type = 'text'
 }) {
     return (
         <div
@@ -33,7 +34,12 @@ export default function ChatMessage({
                         borderTopRightRadius: !isAuthor ? 12 : 0,
                     }}
                 >
-                    <div>{message}</div>
+                    {type === 'text' && <div>{message}</div>}
+                    {type === 'image' && (
+                        <div className="p-3">
+                            <img src={message} alt="imagem" />
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

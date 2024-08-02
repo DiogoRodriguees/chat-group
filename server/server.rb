@@ -34,6 +34,12 @@ EM.run do
                         groups[group_id].each { |client| client.send msg }
                     end
                 end
+            elsif data["type"] == "image"
+                clients.each do |uid, groups|
+                    if groups[group_id]
+                        groups[group_id].each { |client| client.send msg }
+                    end
+                end
             end
         end
 

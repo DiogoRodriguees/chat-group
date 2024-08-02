@@ -6,7 +6,8 @@ import useWebSocket, { ReadyState } from 'react-use-websocket';
 import ChatMessage from '../../components/chat/ChatMessage';
 
 const SOCKET_URL = 'ws://localhost:8080';
-// const SOCKET_URL = 'ws://2.tcp.ngrok.io:13690';
+// const SOCKET_URL = 'ws://10.1.7.69:8080';
+// const SOCKET_URL = 'ws://6.tcp.ngrok.io:11269';
 
 export default function ChatPage() {
 
@@ -51,7 +52,7 @@ export default function ChatPage() {
             ]);
             return;
         }
-    
+
         if (typingMessageIndex !== -1) {
             setChat(prev => [
                 ...prev.slice(0, typingMessageIndex),
@@ -60,7 +61,7 @@ export default function ChatPage() {
             ]);
             return;
         }
-    
+
         setChat((prevChat) => [...prevChat, data]);
     }
 
@@ -77,12 +78,16 @@ export default function ChatPage() {
         ]);
     }
 
+    const receiveImageMessage = (data) => {
+        setChat((prevChat) => [...prevChat, data]);
+    }
+
     const scrollToBottom = () => {
 
         const offset = 96;
 
         const { scrollTop, scrollHeight, clientHeight } = chatRef.current;
-        const isAtBottom = scrollTop + clientHeight + offset >= scrollHeight;        
+        const isAtBottom = scrollTop + clientHeight + offset >= scrollHeight;
 
         if (!isAtBottom) return;
 
@@ -94,6 +99,7 @@ export default function ChatPage() {
         const receiveFunctions = {
             typing: receiveTypingMessage,
             text: receiveFinalMessage,
+            image: receiveImageMessage,
         };
 
         const receiveFunction = receiveFunctions[data.type];
@@ -142,39 +148,42 @@ export default function ChatPage() {
 
         sendMessage({
             type: 'typing',
-            is_typing: true,
             message: typedMessage
         });
     };
 
-    // const handleSendImage = async (event) => {
-    //     const file = event.target.files[0];
-    //     const formData = new FormData();
-    //     formData.append('file', file);
-    //     formData.append('user_id', userId);
-    //     formData.append('group_id', groupId);
+    const toBase64 = file => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+    });
 
-    //     try {
-    //         const response = await axios.post('http://localhost:4567/upload', formData);
-    //         const imageUrl = response.data.url;
-    //         sendMessage(JSON.stringify({ type: 'image', user_id: userId, group_id: groupId, image_url: imageUrl }));
-    //     } catch (error) {
-    //         console.error('Error uploading image:', error);
-    //     }
-    // };
+    const handleSendImage = async (event) => {
+        const file = event.target.files[0];
+        try {
+            toBase64(file).then(img64 => {
+                sendMessage({
+                    message: img64,
+                    type: 'image',
+                });
+            });
+        } catch (error) {
+            console.error('Error uploading image:', error);
+        }
+    };
 
     const renderChatMessage = (msg) => {
-        if (msg.type === 'text' || msg.type === 'typing') {
-            return (
-                <ChatMessage
-                    authorName={msg.user_id}
-                    message={msg.message}
-                    isTyping={msg.type === 'typing'}
-                    isAuthor={msg.user_id === userId}
-                    color={msg.color}
-                />
+        return (
+            <ChatMessage
+                authorName={msg.user_id}
+                message={msg.message}
+                isTyping={msg.type === 'typing'}
+                isAuthor={msg.user_id === userId}
+                color={msg.color}
+                type={msg.type === 'image' ? 'image' : 'text'}
+            />
         );
-        }   
     }
 
     return (
@@ -186,7 +195,6 @@ export default function ChatPage() {
                     {chat.map((msg, index) => (
                         <div key={index}>
                             {renderChatMessage(msg)}
-                            {msg.type === 'image' && <img src={msg.image_url} alt="Chat" style={{ maxWidth: '200px' }} />}
                         </div>
                     ))}
                     <div ref={scrollRef}></div>
@@ -202,7 +210,7 @@ export default function ChatPage() {
                             onChange={(e) => handleTyping(e.target.value)}
                             onKeyDown={e => e.key === 'Enter' && handleSendMessage()}
                         />
-                        </div>
+                    </div>
                     <button
                         className='px-4 py-1 rounded-full border-none bg-[#1890ff] text-white font-semibold hover:brightness-110'
                         onClick={handleSendMessage}
@@ -210,7 +218,7 @@ export default function ChatPage() {
                     >
                         Enviar
                     </button>
-                    {/* <input type="file" onChange={handleSendImage} /> */}
+                    <input type="file" onChange={handleSendImage} />
                 </div>
             </div>
 
