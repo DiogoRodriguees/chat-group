@@ -4,8 +4,10 @@ gem 'em-websocket'
 gem 'json'
 gem 'sinatra'
 gem 'fileutils'
-
+gem "openssl"
 gem "rackup", "~> 2.1"
+gem 'base64'
+gem 'aes'
 
 group :development, :test do
     gem "rerun"

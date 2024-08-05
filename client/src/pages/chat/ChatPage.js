@@ -1,5 +1,5 @@
 
-import axios from 'axios';
+import CryptoJS from 'crypto-js';
 import React, { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import useWebSocket, { ReadyState } from 'react-use-websocket';
@@ -25,6 +25,9 @@ export default function ChatPage() {
     const [message, setMessage] = useState('');
     const [chat, setChat] = useState([]);
 
+    const [key, setKey] = useState()
+    const [iv, setIV] = useState()
+
     useEffect(() => {
         if (!nickname || !sessionCode) {
             navigate('/');
@@ -37,7 +40,8 @@ export default function ChatPage() {
         scrollToBottom();
     }, [chat.length]);
 
-    const receiveTypingMessage = (data) => {
+    const receiveTypingMessage = (d) => {
+        const data = decryptMessage(d)
         const typingMessageIndex = chat.findIndex(msg =>
             msg.type === 'typing' &&
             msg.user_id === data.user_id
@@ -65,7 +69,9 @@ export default function ChatPage() {
         setChat((prevChat) => [...prevChat, data]);
     }
 
-    const receiveFinalMessage = (data) => {
+    const receiveFinalMessage = (d) => {
+        const data = decryptMessage(d)
+
         const typingMessageIndex = chat.findIndex(msg =>
             msg.type === 'typing' &&
             msg.user_id === data.user_id
@@ -94,12 +100,24 @@ export default function ChatPage() {
         scrollRef.current.scrollIntoView({ behavior: 'smooth' });
     }
 
+    const receivePublicKeyMessage = (data) => {
+        setKey(data.key)
+        setIV(data.iv)
+    }
+
+    const decryptMessage = (data) => {
+        const decipher = CryptoJS.AES.decrypt(atob(data.message), atob(key), atob(iv));
+        data.message = decipher.toString(CryptoJS.enc.Utf8)
+        return data
+    };
+
     const onMessage = (data) => {
 
         const receiveFunctions = {
             typing: receiveTypingMessage,
             text: receiveFinalMessage,
             image: receiveImageMessage,
+            public_key: receivePublicKeyMessage,
         };
 
         const receiveFunction = receiveFunctions[data.type];
@@ -131,14 +149,19 @@ export default function ChatPage() {
         sendSocketMessage(JSON.stringify(messageData));
     }
 
+    const encryptMsg = (msg) => {
+        const encrypted = CryptoJS.AES.encrypt(msg, atob(key));
+        return btoa(encrypted)
+    }
+
     const handleSendMessage = () => {
         if (!message) {
             return;
         }
-
+        const myMessage = encryptMsg(message)
         sendMessage({
             type: 'text',
-            message
+            message: myMessage
         });
         setMessage('');
     };
@@ -146,9 +169,10 @@ export default function ChatPage() {
     const handleTyping = (typedMessage) => {
         setMessage(typedMessage);
 
+        const myMessage = encryptMsg(typedMessage)
         sendMessage({
             type: 'typing',
-            message: typedMessage
+            message: myMessage
         });
     };
 
