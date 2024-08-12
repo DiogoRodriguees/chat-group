@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import useWebSocket, { ReadyState } from 'react-use-websocket';
 import ChatMessage from '../../components/chat/ChatMessage';
+import UsersList from '../../components/chat/UsersList';
 
 const SOCKET_URL = 'ws://localhost:8080';
 // const SOCKET_URL = 'ws://10.1.7.69:8080';
@@ -24,6 +25,7 @@ export default function ChatPage() {
 
     const [message, setMessage] = useState('');
     const [chat, setChat] = useState([]);
+    const [connectedUsers, setConnectedUsers] = useState([]);
 
     const [key, setKey] = useState()
     const [iv, setIV] = useState()
@@ -111,6 +113,36 @@ export default function ChatPage() {
         return data
     };
 
+    const receiveUserConnected = (data) => {
+        if (data.user_id === userId) return;
+
+        setConnectedUsers(prev => [
+            ...prev,
+            {
+                userId: data.user_id,
+                color: `${data.color}`,
+            }
+        ]);
+    }
+
+    const receiveUserDisconnected = (data) => {
+        const disconnectedUserIndex = connectedUsers.findIndex(user =>
+            user.userId === data.user_id
+        );
+
+        if (disconnectedUserIndex === -1) return;
+
+        setConnectedUsers(prev => [
+            ...prev.slice(0, disconnectedUserIndex),
+            ...prev.slice(disconnectedUserIndex + 1, prev.length),
+        ]);
+    }
+
+    const receiveInitialUserList = (data) => {
+        console.log(data.users);
+        setConnectedUsers(data.users);
+    }
+
     const onMessage = (data) => {
 
         const receiveFunctions = {
@@ -118,6 +150,9 @@ export default function ChatPage() {
             text: receiveFinalMessage,
             image: receiveImageMessage,
             public_key: receivePublicKeyMessage,
+            connect: receiveUserConnected,
+            disconnect: receiveUserDisconnected,
+            userList: receiveInitialUserList,
         };
 
         const receiveFunction = receiveFunctions[data.type];
@@ -127,7 +162,7 @@ export default function ChatPage() {
         receiveFunction(data);
     }
 
-    const { sendMessage: sendSocketMessage, lastMessage, readyState } = useWebSocket(`${SOCKET_URL}?user_id=${userId}&group_id=${groupId}`, {
+    const { sendMessage: sendSocketMessage, lastMessage, readyState } = useWebSocket(`${SOCKET_URL}?user_id=${userId}&group_id=${groupId}&color=${color.slice(1)}`, {
         onOpen: () => console.log('Connected to WebSocket'),
         onMessage: (event) => {
             console.log('Received Message', event.data);
@@ -142,7 +177,7 @@ export default function ChatPage() {
         const messageData = {
             user_id: userId,
             group_id: groupId,
-            color: color,
+            color: color.slice(1),
             ...msg,
         };
 
@@ -218,7 +253,7 @@ export default function ChatPage() {
     }
 
     return (
-        <div className='use-align-center use-full-screen use-background'>
+        <div className='use-align-center use-full-screen use-background flex gap-6'>
             <div className='w-full max-w-2xl h-[90%] bg-[#f6f7f8] rounded-lg p-6 border border-[#dedede] shadow-[0_0_15px_#d4d4d4] flex flex-col'>
 
                 <div className="text-2xl mb-6">Chat</div>
@@ -242,7 +277,7 @@ export default function ChatPage() {
                             onKeyDown={e => e.key === 'Enter' && handleSendMessage()}
                         />
                         <label
-                            for="upload"
+                            htmlFor="upload"
                             className="cursor-pointer py-2 px-4 h-full hover:scale-110 hover:drop-shadow-[0_0_6px_#1890ff99] transition-[transform_.3s_ease,_filter_.3s_ease]"
                         >
                             <div className='-translate-y-1 text-[28px] flex items-center h-6'>
@@ -265,6 +300,7 @@ export default function ChatPage() {
                     />
                 </div>
             </div>
+            <UsersList users={connectedUsers} />
 
         </div>
     );

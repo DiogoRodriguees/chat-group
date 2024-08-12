@@ -16,7 +16,7 @@ export default function ChatMessage({
         >
             <div
                 className="uppercase text-2xl font-semibold w-12 h-12 flex justify-center items-center text-white rounded-full shrink-0"
-                style={{ backgroundColor: color }}
+                style={{ backgroundColor: `#${color}` }}
             >
                 {authorName[0]}
             </div>
